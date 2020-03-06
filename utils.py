@@ -1,0 +1,2 @@
+TOTAL_TOKENS_NUM = 50
+MARKER = (-1, -1)
