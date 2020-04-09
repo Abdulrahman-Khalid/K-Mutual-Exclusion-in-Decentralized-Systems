@@ -117,7 +117,7 @@ class NodeOld():
                 NodeType.LRQ.enqueue(nodeId)
                 # NodeOld.GRQ.remove(nodeId)
 
-    def recieve_token(self, tokenQueue):
+    def recieve_token(self, fromNode, tokenQueue):
         if (self.NodeType == NodeType.NORMAL):
             if self.requested:
                 self.mutex = True
@@ -127,9 +127,10 @@ class NodeOld():
             else:
                 self.send_token()
 
-        if(self.type == NodeType.LRC):  # if (self.id[1] == 1):
+        # if (self.id[1] == 1):
+        if(self.type == NodeType.LRC or self.type == NodeType.GRC):
             self.numOfTokens += 1
-            if (nodeId[0] == self.id[0]):  # same local group
+            if (fromNode[0] == self.id[0]):  # same local group
                 NodeType.LRQ.enqueue(MARKER)
                 # NodeOld.GRQ.put(token.Q) #TODO Doesn't understand what for
                 # LRQ[0] => is front of queue
@@ -139,10 +140,9 @@ class NodeOld():
                     # TODO Enter CS
 
                     # END CS
+                    self.release_CS()
                 else:
-                    # TODO uncomment when write this function and remove the print below
                     self.send_token()
-                    print("To be removed")
             else:
                 # TODO uncomment when write this function and remove the print below
                 self.send_token()
@@ -172,7 +172,7 @@ class NodeOld():
             else:  # token from local node to another local node
                 nextNode = self.tokenQueue.front()
                 Msg = {"MsgID": MsgDetails.TOKEN_QUEUE,
-                       "TokenQueue": self.tokenQueue}
+                       "FromNode": self.id, "TokenQueue": self.tokenQueue}
                 Topic = ("Group({}),Id({}):Token".format(
                     nextNode[0], nextNode[1])).encode()
                 PubSocket.send_multipart([Topic, pickle.dumps(Msg)])
@@ -189,7 +189,7 @@ class NodeOld():
                             tempTokenQueue.enqueue(NodeOld.LRQ.dequeue())
                             firstNode = self.tokenQueue.front()
                             Msg = {"MsgID": MsgDetails.TOKEN_QUEUE,
-                                   "TokenQueue": tempTokenQueue}
+                                   "FromNode": self.id, "TokenQueue": tempTokenQueue}
                             Topic = ("Group({}),Id({}):Token".format(
                                 firstNode[0], firstNode[1])).encode()
                             PubSocket.send_multipart(
@@ -211,7 +211,7 @@ class NodeOld():
                         for i in range(TOTAL_TOKENS_NUM):
                             firstNode = queueOfTokenQueue[i].front()
                             Msg = {"MsgID": MsgDetails.TOKEN_QUEUE,
-                                   "TokenQueue": queueOfTokenQueue[i]}
+                                   "FromNode": self.id, "TokenQueue": queueOfTokenQueue[i]}
                             Topic = "Group({}),Id({}):Token".format(
                                 firstNode[0], firstNode[1]).encode()
                             PubSocket.send_multipart(
@@ -234,8 +234,8 @@ class NodeOld():
                         # send tokens to GRC's group's local nodes
                         for i in range(TOTAL_TOKENS_NUM - 1):
                             firstLRC = queueOfTokenQueue[i].front()
-                            Msg = {"MsgID": MsgDetails.GRC_LRC_TOKEN,
-                                   "TokenQueue": queueOfTokenQueue[i]}
+                            Msg = {"MsgID": MsgDetails.TOKEN_QUEUE,
+                                   "FromNode": self.id, "TokenQueue": queueOfTokenQueue[i]}
                             Topic = ("Group({}):TokenQueueGlobal".format(
                                 firstLRC[0])).encode()
                             PubSocket.send_multipart(
@@ -251,8 +251,8 @@ class NodeOld():
                             tempTokenQueue = Queue()
                             tempTokenQueue.enqueue(NodeOld.GRQ.dequeue())
                             firstLRC = self.tempTokenQueue.front()
-                            Msg = {"MsgID": MsgDetails.GRC_LRC_TOKEN,
-                                   "TokenQueue": tempTokenQueue}
+                            Msg = {"MsgID": MsgDetails.TOKEN_QUEUE,
+                                   "FromNode": self.id, "TokenQueue": queueOfTokenQueue[i]}
                             Topic = ("Group({}):TokenQueueGlobal".format(
                                 firstLRC[0])).encode()
                             PubSocket.send_multipart(
@@ -278,7 +278,7 @@ class NodeOld():
                         for i in range(remainingNumTokens):
                             firstNode = queueOfTokenQueue[i].front()
                             Msg = {"MsgID": MsgDetails.TOKEN_QUEUE,
-                                   "TokenQueue": queueOfTokenQueue[i]}
+                                   "FromNode": self.id, "TokenQueue": queueOfTokenQueue[i]}
                             Topic = "Group({}),Id({}):Token".format(
                                 firstNode[0], firstNode[1]).encode()
                             PubSocket.send_multipart(
@@ -291,7 +291,7 @@ class NodeOld():
                     tempTokenQueue.enqueue(MARKER)
                     firstNode = tempTokenQueue.front()
                     Msg = {"MsgID": MsgDetails.TOKEN_QUEUE,
-                           "TokenQueue": tempTokenQueue}
+                           "FromNode": self.id, "TokenQueue": queueOfTokenQueue[i]}
                     Topic = "Group({}),Id({}):Token".format(
                         firstNode[0], firstNode[1]).encode()
                     PubSocket.send_multipart([Topic, pickle.dumps(Msg)])
@@ -301,7 +301,8 @@ class NodeOld():
                         tempTokenQueue = NodeOld.LRQ.copy()
                         firstNode = tempTokenQueue.front()
                         Msg = {"MsgID": MsgDetails.TOKEN_QUEUE,
-                               "TokenQueue": tempTokenQueue}
+                               "FromNode": self.id, "TokenQueue": tempTokenQueue}
+
                         Topic = "Group({}),Id({}):Token".format(
                             firstNode[0], firstNode[1]).encode()
                         PubSocket.send_multipart([Topic, pickle.dumps(Msg)])
