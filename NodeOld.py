@@ -96,10 +96,10 @@ class NodeOld():
                 self.requestSent = True
             # TODO if GRC wants to enter its CS
 
-    def recieve_request(self, nodeId):
+    def recieve_request(self, fromNode):
         # setTimeOut(SubSocket, 500)
         if (self.type == NodeType.LRC):
-            NodeType.LRQ.enqueue(nodeId)
+            NodeType.LRQ.enqueue(fromNode)
             if (not self.requestSent):
                 # msg to GRC from LRC
                 Msg = {"MsgID": MsgDetails.LRC_GRC_REQ_CS, "GID": self.id[0]}
@@ -108,14 +108,14 @@ class NodeOld():
                 self.requestSent = True
                 #####################
         elif(self.type == NodeType.GRC):
-            if (nodeId[1] == 1):  # SENT FROM LRC
+            if (fromNode[1] == 1):  # SENT FROM LRC
                 NodeOld.GRQ.enqueue(self.id)
                 NodeType.LRQ.enqueue(MARKER)
                 self.send_token()
             else:
-                # TODO Send (Request, (nodeId[0], nodeId[1]) to GRC)
-                NodeType.LRQ.enqueue(nodeId)
-                # NodeOld.GRQ.remove(nodeId)
+                # TODO Send (Request, (fromNode[0], fromNode[1]) to GRC)
+                NodeType.LRQ.enqueue(fromNode)
+                # NodeOld.GRQ.remove(fromNode)
 
     def recieve_token(self, fromNode, tokenQueue):
         if (self.NodeType == NodeType.NORMAL):
