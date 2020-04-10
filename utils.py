@@ -1,11 +1,18 @@
 import time
 import zmq
 import enum
+import socket
+from contextlib import closing
+
 
 TOTAL_TOKENS_NUM = 5
 MARKER = (-1, -1)
-NODES_NUMBER = 20
-MachinesIPs = ["192.168.1.13", "192.168.1.14", "192.168.1.15", "192.168.1.16"]
+NODES_NUMBER = 16
+MachinesIPs = ["192.168.1.13", "192.168.1.14", "192.168.1.15", "192.168.1.16",
+               "192.168.1.13", "192.168.1.14", "192.168.1.15", "192.168.1.16",
+               "192.168.1.13", "192.168.1.14", "192.168.1.15", "192.168.1.16",
+               "192.168.1.13", "192.168.1.14", "192.168.1.15", "192.168.1.16"]
+# MachinesIPs = [get_ip()]
 SubscribePort = "10000"
 
 
@@ -61,3 +68,16 @@ def configure_multiple_ports(IPs, port, portType, openTimeOut=False,
         socket.connect("tcp://" + IP + ":" + port)
         time.sleep(1)
     return socket, context
+
+
+def find_free_port():
+    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
+        s.bind(('', 0))
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        return s.getsockname()[1]
+
+
+def get_ip():
+    with closing(socket.socket(socket.AF_INET, socket.SOCK_DGRAM)) as s:
+        s.connect(("8.8.8.8", 80))
+        return s.getsockname()[0]
