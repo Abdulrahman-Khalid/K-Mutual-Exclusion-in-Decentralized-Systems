@@ -159,6 +159,7 @@ class NodeOld():
                 self.mutex = True
                 self.tokenQueue.dequeue()
                 # TODO Enter CS
+                self.run_CS()
                 self.release_CS()
             else:
                 self.send_token()
@@ -174,8 +175,8 @@ class NodeOld():
                     NodeType.LRQ.dequeue()
                     # TODO Enter CS
                     self.run_CS()
-                    # END CS
                     self.release_CS()
+                    # END CS
                 else:
                     self.send_token()
             else:
