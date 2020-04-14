@@ -20,9 +20,14 @@ if __name__ == "__main__":
     i = 0
     for group in groups:
         for node in group:
-            cmd = "python {} {} {} {}".format(
-                runFileName, node[0], node[1], MachinesIPs[i])
-            p = run(cmd, shell=True, timeout=5*60)
+            if(node[0] == 2 and node[1] == 2):
+                cmd = "python {} {} {} {} {}".format(
+                    runFileName, node[0], node[1], MachinesIPs[i], 1)
+            else:
+                cmd = "python {} {} {} {} {}".format(
+                    runFileName, node[0], node[1], MachinesIPs[i], 0)
+            #p = run(cmd, shell=True, timeout= 5*60)
+            p = run(cmd, shell=True)
             print("Node ({},{}) is created with ip address = {}".format(
                 node[0], node[1], MachinesIPs[i]))
             i += 1

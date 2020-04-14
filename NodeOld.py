@@ -26,12 +26,13 @@ class NodeOld():
 
     def __init__(self, i, j, ip):
         self.id = i, j
-        self.self.myIp = ip
+        self.myIp = ip
         self.requested = False
         self.mutex = False
         self.requestSent = False
         self.tokenQueue = None  # not sure
         self.tokens = []
+        self.type = None
         if (self.id[1] == 1):
             self.type = NodeType.LRC
             self.totalTokenSent = 0
@@ -44,7 +45,8 @@ class NodeOld():
         self.ConfigPubSubSockets()
 
     def ConfigPubSubSockets(self):
-            # Setup Subscriber Port
+        global SubSocket, SubContext, PubSocket, PubContext
+        # Setup Subscriber Port
         ipPort = self.myIp + ":" + SubscribePort
         Topics = self.MsgsTopics()
         SubSocket, SubContext = configure_port(ipPort, zmq.SUB, 'bind',
@@ -70,7 +72,7 @@ class NodeOld():
             Topics.append("LRCRequestCS")
             Topics.append("LRC_GRC_Token")
 
-        if(self.type == NodeType.NOMRAL):
+        if(self.type == NodeType.NORMAL):
             Topics.append("Group({}),Id({}):Token".format(
                 self.id[0], self.id[1]))
 
@@ -88,7 +90,7 @@ class NodeOld():
                      .format(self.id[0])).encode()
             PubSocket.send_multipart([Topic, pickle.dumps(Msg)])
         else:
-            NodeType.LRQ.enqueue(self.id)
+            NodeOld.LRQ.enqueue(self.id)
             if self.numOfTokens > 0:
                 self.numOfTokens -= 1
                 # TODO enter CS
@@ -104,9 +106,8 @@ class NodeOld():
            
 
     def recieve_request(self, fromNode):
-        # setTimeOut(SubSocket, 500)
         if (self.type == NodeType.LRC):
-            NodeType.LRQ.enqueue(fromNode)
+            NodeOld.LRQ.enqueue(fromNode)
             if (not self.requestSent):
                 # msg to GRC from LRC
                 Msg = {"MsgID": MsgDetails.LRC_GRC_REQ_CS, "GID": self.id[0]}
@@ -120,12 +121,12 @@ class NodeOld():
                 #NodeType.LRQ.enqueue(MARKER)
             else:
                 # TODO Send (Request, (fromNode[0], fromNode[1]) to GRC)
-                NodeType.LRQ.enqueue(fromNode)
+                NodeOld.LRQ.enqueue(fromNode)
                 # NodeOld.GRQ.remove(fromNode)
             self.send_token()
 
     def receiving(self):
-        setTimeOut(5000)
+        setTimeOut(SubSocket, 5000)
         Topic, receivedMessage = SubSocket.recv_multipart()
         receivedMessage = pickle.loads(receivedMessage)
         if(self.type == NodeType.NORMAL):
@@ -134,11 +135,11 @@ class NodeOld():
 
         elif(self.type == NodeType.LRC):
             if(Topic == "Group({}):RequestCS".format(self.id[0])):
-                recieve_request((self.id[0], receivedMessage["ID"]))
+                self.recieve_request((self.id[0], receivedMessage["ID"]))
             elif(Topic == "Group({}):EmptyTokenQueueLocal".format(self.id[0])):
-                recieve_token(True, Queue())
+                self.recieve_token(True, Queue())
             elif(Topic == "Group({}):TokenQueueGlobal".format(self.id[0])):
-                recieve_token(False, receivedMessage["TokenQueue"])
+                self.recieve_token(False, receivedMessage["TokenQueue"])
             elif(Topic == "NewGRC"):
                 if(self.id == receivedMessage["GRCId"]):
                     self.type = NodeType.GRC
@@ -146,19 +147,19 @@ class NodeOld():
 
         elif(self.type == NodeType.GRC):
             if(Topic == "Group({}):RequestCS".format(self.id[0])):
-                recieve_request((self.id[0], receivedMessage["ID"]))
+                self.recieve_request((self.id[0], receivedMessage["ID"]))
             elif(Topic == "Group({}):EmptyTokenQueueLocal".format(self.id[0])):
-                recieve_token(True, Queue())
+                self.recieve_token(True, Queue())
             elif(Topic == "LRCRequestCS"):
-                self.recieve_request()
+                self.recieve_request((receivedMessage["GID"], 1))
             elif(Topic == "LRC_GRC_Token"):
-                recieve_token(False, receivedMessage["TokenQueue"])
+                self.recieve_token(False, receivedMessage["TokenQueue"])
 
     def recieve_token(self, sameLocalGroup, tokenQueue):
         # TODO Added Need TO BE REVIEWED
         self.tokenQueue = tokenQueue
         ################################
-        if (self.NodeType == NodeType.NORMAL):
+        if (self.type == NodeType.NORMAL):
             if self.requested:
                 self.mutex = True
                 self.tokenQueue.dequeue()
@@ -171,13 +172,13 @@ class NodeOld():
         if(self.type == NodeType.LRC):
             self.numOfTokens += 1
             if (not sameLocalGroup):  # same local group
-                NodeType.LRQ.enqueue(MARKER)
+                NodeOld.LRQ.enqueue(MARKER)
                 # NodeOld.GRQ.put(token.Q) #TODO Doesn't understand what for
                 # LRQ[0] => is front of queue
                 self.requestSent = False
-                if (self.requested and NodeType.LRQ.front() == self.id):
+                if (self.requested and NodeOld.LRQ.front() == self.id):
                     self.mutex = True
-                    NodeType.LRQ.dequeue()
+                    NodeOld.LRQ.dequeue()
                     # TODO Enter CS
                     self.run_CS()
                     self.release_CS()
@@ -251,9 +252,9 @@ class NodeOld():
                             self.numOfTokens -= 1
 
                     if(p > TOTAL_TOKENS_NUM):  # local nodes wants tokens more than num of tokens
-                        queueOfTokenQueue = Queue()
+                        queueOfTokenQueue = []
                         for _ in range(TOTAL_TOKENS_NUM):
-                            queueOfTokenQueue.enqueue(Queue())
+                            queueOfTokenQueue.append(Queue())
 
                         m = 0
                         while (not NodeOld.LRQ.is_empty()):
@@ -275,9 +276,9 @@ class NodeOld():
                 if (p >= 0 and q > 0):
                     # num of LRC's wants tokens from GRC more than (num of tokens - 1)
                     if (q >= TOTAL_TOKENS_NUM - 1):
-                        queueOfTokenQueue = Queue()
+                        queueOfTokenQueue = []
                         for _ in range(TOTAL_TOKENS_NUM - 1):
-                            queueOfTokenQueue.enqueue(Queue())
+                            queueOfTokenQueue.append(Queue())
 
                         m = 0
                         while (not NodeOld.GRQ.is_empty()):
@@ -298,13 +299,13 @@ class NodeOld():
                             self.totalTokenSent += 1
 
                         if(self.totalTokenSent == math.sqrt(NODES_NUMBER)):
-                            broadcast_request_collector(NodeOld.GRQ.rear())
+                            self.broadcast_request_collector(NodeOld.GRQ.rear())
 
                     if(q < TOTAL_TOKENS_NUM):
                         for _ in range(q):  # send tokens to LRC's from GRC
                             tempTokenQueue = Queue()
                             tempTokenQueue.enqueue(NodeOld.GRQ.dequeue())
-                            firstLRC = self.tempTokenQueue.front()
+                            firstLRC = tempTokenQueue.front()
                             Msg = {"MsgID": MsgDetails.TOKEN_QUEUE,
                                    "TokenQueue": queueOfTokenQueue[i]}
                             Topic = ("Group({}):TokenQueueGlobal".format(
@@ -315,7 +316,7 @@ class NodeOld():
                             self.totalTokenSent += 1
 
                         if(self.totalTokenSent == math.sqrt(NODES_NUMBER)):
-                            broadcast_request_collector(NodeOld.GRQ.rear())
+                            self.broadcast_request_collector(NodeOld.GRQ.rear())
 
                         # not sure written LRQ = phi in the paper's pesudo code
                         remainingNumTokens = TOTAL_TOKENS_NUM - q

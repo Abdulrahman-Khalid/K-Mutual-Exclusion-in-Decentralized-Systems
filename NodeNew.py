@@ -26,7 +26,7 @@ class NodeNew():
 
     def __init__(self, i, j, ip):
         self.id = i, j
-        self.self.myIp = ip
+        self.myIp = ip
         self.requested = False
         self.mutex = False
         self.requestSent = False
