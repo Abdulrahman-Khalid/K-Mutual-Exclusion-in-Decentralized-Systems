@@ -156,7 +156,7 @@ class NodeOld():
 
     def recieve_token(self, sameLocalGroup, tokenQueue):
         # TODO Added Need TO BE REVIEWED
-        self.tokenQueue = tokenQueue
+        self.tokenQueue = tokenQueue.copy()
         ################################
         if (self.type == NodeType.NORMAL):
             if self.requested:
@@ -354,7 +354,8 @@ class NodeOld():
                 if (NodeOld.LRQ.front() == MARKER):
                     if(self.type == NodeType.GRC and not NodeOld.GRQ.is_empty()):
                         NodeOld.LRQ.dequeue()  # pop marker
-                        tempTokenQueue = NodeOld.LRQ.copy()
+                        self.tokenQueue = NodeOld.LRQ.copy()
+                        NodeOld.LRQ = Queue()
                         NodeOld.LRQ.enqueue(MARKER)
                         firstNode = tempTokenQueue.front()
                         Msg = {"MsgID": MsgDetails.TOKEN_QUEUE,

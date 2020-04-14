@@ -9,10 +9,10 @@ class Queue:
         return self.queue.pop(0)
 
     def front(self):
-        return queue[0]
+        return self.queue[0]
 
     def rear(self):
-        return queue[-1]
+        return self.queue[-1]
 
     def is_empty(self):
         return len(self.queue) == 0
