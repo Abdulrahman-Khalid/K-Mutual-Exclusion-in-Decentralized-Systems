@@ -1,19 +1,19 @@
 from subprocess import run, PIPE
 import random
+from NodeOld import *
+from random import randint
 import threading
 import math
 from utils import MachinesIPs, NODES_NUMBER
 
 
-def run_node(node):
-    if(node[0] == 2 and node[1] == 2):
-        cmd = "python {} {} {} {} {}".format(
-            runFileName, node[0], node[1], MachinesIPs[i], 1)
-    else:
-        cmd = "python {} {} {} {} {}".format(
-            runFileName, node[0], node[1], MachinesIPs[i], 0)
-    p = run(cmd, shell=True)
-    p.wait()
+def run_node(node, ip):
+    node = NodeOld(node[1], node[2], ip)
+    while(True):
+        node.receiving()
+        rand = randint(1, 1000000)
+        if(rand % 10 == 0):  # 1/10 of times request Critical Section
+            node.request_CS()
 
 
 if __name__ == "__main__":
@@ -35,7 +35,7 @@ if __name__ == "__main__":
     z = []
     for group in groups:
         for node in group:
-            t = threading.Thread(target=run_node, args=(node,))
+            t = threading.Thread(target=run_node, args=(node, MachinesIPs[i],))
             t.start()
             z.append(t)
             # p = run(cmd, shell=True, timeout= 5*60)
