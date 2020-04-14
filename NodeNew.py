@@ -22,6 +22,7 @@ class NodeType(enum.Enum):
 class NodeNew():
     LRQ = Queue()
     GRQ = Queue()
+    GRQCPY = Queue()
     # TOKEN_Q = Queue()
 
     def __init__(self, i, j, ip):
@@ -101,7 +102,6 @@ class NodeNew():
                 Topic = "LRCRequestCS".encode()
                 PubSocket.send_multipart([Topic, pickle.dumps(Msg)])
                 self.requestSent = True
-           
 
     def recieve_request(self, fromNode):
         # setTimeOut(SubSocket, 500)
@@ -117,7 +117,7 @@ class NodeNew():
         elif(self.type == NodeType.GRC):
             if (fromNode[1] == 1):  # SENT FROM LRC
                 NodeNew.GRQ.enqueue(self.id)
-                #NodeType.LRQ.enqueue(MARKER)
+                # NodeType.LRQ.enqueue(MARKER)
             else:
                 # TODO Send (Request, (fromNode[0], fromNode[1]) to GRC)
                 NodeType.LRQ.enqueue(fromNode)
@@ -152,6 +152,7 @@ class NodeNew():
             elif(Topic == "LRCRequestCS"):
                 self.recieve_request()
             elif(Topic == "LRC_GRC_Token"):
+                NodeNew.GRQCPY.remove((receivedMessage["GID"], 1))
                 recieve_token(False, receivedMessage["TokenQueue"])
 
     def recieve_token(self, sameLocalGroup, tokenQueue):
@@ -171,7 +172,8 @@ class NodeNew():
         if(self.type == NodeType.LRC):
             self.numOfTokens += 1
             if (not sameLocalGroup):  # same local group
-                NodeType.LRQ.enqueue(MARKER)
+                if(NodeType.LRQ.front() == MARKER):
+                    NodeType.LRQ.pop()
                 # NodeNew.GRQ.put(token.Q) #TODO Doesn't understand what for
                 # LRQ[0] => is front of queue
                 self.requestSent = False
@@ -215,6 +217,20 @@ class NodeNew():
     # not sure he said send token from i,k to u,w and never use u and w in the function
 
     def send_token(self):
+        if (self.type == NodeType.GRC and (not NodeNew.GRQCPY.is_empty())):
+            # send tokens to GRC's group's local nodes
+            firstLRC = NodeNew.GRQCPY.front()
+            tempTokenQueue = Queue()
+            tempTokenQueue.enqueue(firstLRC)
+            Msg = {"MsgID": MsgDetails.TOKEN_QUEUE,
+                   "TokenQueue": tempTokenQueue}
+            Topic = ("Group({}):TokenQueueGlobal".format(
+                firstLRC[0])).encode()
+            PubSocket.send_multipart(
+                [Topic, pickle.dumps(Msg)])
+            self.numOfTokens -= 1
+            self.totalTokenSent += 1
+
         if(self.type == NodeType.NORMAL and self.tokenQueue != None):  # token from local node to LRC
             if(self.tokenQueue.is_empty()):
                 # idOfLRC = self.id[0], 1
@@ -234,6 +250,7 @@ class NodeNew():
             p = NodeNew.LRQ.size()
             q = NodeNew.GRQ.size()
             if(self.type == NodeType.GRC and self.numOfTokens == TOTAL_TOKENS_NUM):
+                NodeNew.GRQCPY = NodeNew.GRQ.copy()
                 if(p > 0 and q == 0):  # local nodes wants tokens and another groups doesn't
                     # localsend_to nodes wants tokens less than or equals num of tokens
                     if(p <= TOTAL_TOKENS_NUM):
@@ -310,7 +327,7 @@ class NodeNew():
                                    "TokenQueue": queueOfTokenQueue[i]}
                             Topic = ("Group({}):TokenQueueGlobal".format(
                                 firstLRC[0])).encode()
-                            for _ in range(GroupTokens):    
+                            for _ in range(GroupTokens):
                                 PubSocket.send_multipart(
                                     [Topic, pickle.dumps(Msg)])
                                 self.numOfTokens -= 1
@@ -320,7 +337,8 @@ class NodeNew():
                             broadcast_request_collector(NodeNew.GRQ.rear())
 
                         # not sure written LRQ = phi in the paper's pesudo code
-                        remainingNumTokens = TOTAL_TOKENS_NUM - (GroupTokens * q)
+                        remainingNumTokens = TOTAL_TOKENS_NUM - \
+                            (GroupTokens * q)
                         queueOfTokenQueue = Queue()
                         for _ in range(remainingNumTokens):
                             queueOfTokenQueue.enqueue(Queue())
@@ -344,14 +362,14 @@ class NodeNew():
             elif(self.type == NodeType.LRC or self.type == NodeType.GRC):
                 if (NodeNew.LRQ.front() != MARKER and NodeNew.LRQ.front() != self.id):  # not sure
                     tempTokenQueue = NodeNew.LRQ.copy()
-                    #tempTokenQueue.enqueue(MARKER)
+                    tempTokenQueue.enqueue(MARKER)
                     firstNode = tempTokenQueue.front()
                     Msg = {"MsgID": MsgDetails.TOKEN_QUEUE,
                            "TokenQueue": queueOfTokenQueue[i]}
                     Topic = "Group({}),Id({}):Token".format(
                         firstNode[0], firstNode[1]).encode()
                     PubSocket.send_multipart([Topic, pickle.dumps(Msg)])
-#--------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------
                 if (NodeNew.LRQ.front() == MARKER):
                     if(self.type == NodeType.GRC and not NodeNew.GRQ.is_empty()):
                         NodeNew.LRQ.dequeue()  # pop marker
@@ -362,8 +380,9 @@ class NodeNew():
                         Topic = "Group({}),Id({}):Token".format(
                             firstNode[0], firstNode[1]).encode()
                         PubSocket.send_multipart([Topic, pickle.dumps(Msg)])
-#--------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------
                     else:
-                        Msg = {"MsgID": MsgDetails.LRC_GRC_Token}
+                        Msg = {"MsgID": MsgDetails.LRC_GRC_Token,
+                               "GID": self.id[0]}
                         Topic = "LRC_GRC_Token".encode()
                         PubSocket.send_multipart([Topic, pickle.dumps(Msg)])

@@ -103,7 +103,6 @@ class NodeOld():
                 Topic = "LRCRequestCS".encode()
                 PubSocket.send_multipart([Topic, pickle.dumps(Msg)])
                 self.requestSent = True
-           
 
     def recieve_request(self, fromNode):
         if (self.type == NodeType.LRC):
@@ -118,7 +117,7 @@ class NodeOld():
         elif(self.type == NodeType.GRC):
             if (fromNode[1] == 1):  # SENT FROM LRC
                 NodeOld.GRQ.enqueue(self.id)
-                #NodeType.LRQ.enqueue(MARKER)
+                # NodeType.LRQ.enqueue(MARKER)
             else:
                 # TODO Send (Request, (fromNode[0], fromNode[1]) to GRC)
                 NodeOld.LRQ.enqueue(fromNode)
@@ -172,7 +171,6 @@ class NodeOld():
         if(self.type == NodeType.LRC):
             self.numOfTokens += 1
             if (not sameLocalGroup):  # same local group
-                NodeOld.LRQ.enqueue(MARKER)
                 # NodeOld.GRQ.put(token.Q) #TODO Doesn't understand what for
                 # LRQ[0] => is front of queue
                 self.requestSent = False
@@ -299,7 +297,8 @@ class NodeOld():
                             self.totalTokenSent += 1
 
                         if(self.totalTokenSent == math.sqrt(NODES_NUMBER)):
-                            self.broadcast_request_collector(NodeOld.GRQ.rear())
+                            self.broadcast_request_collector(
+                                NodeOld.GRQ.rear())
 
                     if(q < TOTAL_TOKENS_NUM):
                         for _ in range(q):  # send tokens to LRC's from GRC
@@ -316,7 +315,8 @@ class NodeOld():
                             self.totalTokenSent += 1
 
                         if(self.totalTokenSent == math.sqrt(NODES_NUMBER)):
-                            self.broadcast_request_collector(NodeOld.GRQ.rear())
+                            self.broadcast_request_collector(
+                                NodeOld.GRQ.rear())
 
                         # not sure written LRQ = phi in the paper's pesudo code
                         remainingNumTokens = TOTAL_TOKENS_NUM - q
@@ -343,25 +343,26 @@ class NodeOld():
             elif(self.type == NodeType.LRC or self.type == NodeType.GRC):
                 if (NodeOld.LRQ.front() != MARKER and NodeOld.LRQ.front() != self.id):  # not sure
                     tempTokenQueue = NodeOld.LRQ.copy()
-                    #tempTokenQueue.enqueue(MARKER)
+                    # tempTokenQueue.enqueue(MARKER)
                     firstNode = tempTokenQueue.front()
                     Msg = {"MsgID": MsgDetails.TOKEN_QUEUE,
                            "TokenQueue": queueOfTokenQueue[i]}
                     Topic = "Group({}),Id({}):Token".format(
                         firstNode[0], firstNode[1]).encode()
                     PubSocket.send_multipart([Topic, pickle.dumps(Msg)])
-#--------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------
                 if (NodeOld.LRQ.front() == MARKER):
                     if(self.type == NodeType.GRC and not NodeOld.GRQ.is_empty()):
                         NodeOld.LRQ.dequeue()  # pop marker
                         tempTokenQueue = NodeOld.LRQ.copy()
+                        NodeOld.LRQ.enqueue(MARKER)
                         firstNode = tempTokenQueue.front()
                         Msg = {"MsgID": MsgDetails.TOKEN_QUEUE,
                                "TokenQueue": tempTokenQueue}
                         Topic = "Group({}),Id({}):Token".format(
                             firstNode[0], firstNode[1]).encode()
                         PubSocket.send_multipart([Topic, pickle.dumps(Msg)])
-#--------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------
                     else:
                         Msg = {"MsgID": MsgDetails.LRC_GRC_Token}
                         Topic = "LRC_GRC_Token".encode()
