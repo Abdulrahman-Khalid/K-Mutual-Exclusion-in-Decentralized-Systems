@@ -180,17 +180,17 @@ class NodeOld():
                     # TODO Enter CS
                     self.run_CS()
                     self.release_CS()
-                    # END CS
+                    # END CStokenQueuetokenQueue
                 else:
                     self.send_token()
             else:
                 # TODO uncomment when write this function and remove the print below
                 self.send_token()
-                print("To be removed")
+                # print("To be removed")
         else:
             self.numOfTokens += 1
             self.totalTokenSent -= 1
-            self.send_token()
+            self.send_token(tokenQueue)
 
     def release_CS(self):
         self.requested = False
@@ -213,7 +213,18 @@ class NodeOld():
 
     # not sure he said send token from i,k to u,w and never use u and w in the function
 
-    def send_token(self):
+    def send_token(self, token=None):
+        if(token != None and (not token.is_empty())):
+            firstLRC = token.front()
+            Msg = {"MsgID": MsgDetails.TOKEN_QUEUE,
+                   "TokenQueue": token}
+            Topic = ("Group({}):TokenQueueGlobal".format(
+                firstLRC[0])).encode()
+            PubSocket.send_multipart(
+                [Topic, pickle.dumps(Msg)])
+            self.numOfTokens -= 1
+            self.totalTokenSent += 1
+
         if(self.type == NodeType.NORMAL and self.tokenQueue != None):  # token from local node to LRC
             if(self.tokenQueue.is_empty()):
                 # idOfLRC = self.id[0], 1
@@ -365,6 +376,14 @@ class NodeOld():
                         PubSocket.send_multipart([Topic, pickle.dumps(Msg)])
 # --------------------------------------------------------------------------------------------
                     else:
-                        Msg = {"MsgID": MsgDetails.LRC_GRC_Token}
+                        self.tokenQueue.dequeue()
+                        Msg = {"MsgID": MsgDetails.LRC_GRC_Token,
+                               "TokenQueue": self.tokenQueue}
+                        self.tokenQueue = None
                         Topic = "LRC_GRC_Token".encode()
                         PubSocket.send_multipart([Topic, pickle.dumps(Msg)])
+
+## Queue (LRC1, LRC2, LRC3)
+# LRC1 -> serve all in LRQ
+# LRC1 -> Queue (LRC2, LRC3)
+# Queue (LRC2, LRC3) -> to GRC

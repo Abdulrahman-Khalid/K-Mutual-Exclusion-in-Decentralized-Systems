@@ -151,7 +151,7 @@ class NodeNew():
             elif(Topic == "Group({}):EmptyTokenQueueLocal".format(self.id[0])):
                 self.recieve_token(True, Queue())
             elif(Topic == "LRCRequestCS"):
-                 self.recieve_request((receivedMessage["GID"], 1))
+                self.recieve_request((receivedMessage["GID"], 1))
             elif(Topic == "LRC_GRC_Token"):
                 NodeNew.GRQCPY.remove((receivedMessage["GID"], 1))
                 self.recieve_token(False, receivedMessage["TokenQueue"])
@@ -190,11 +190,11 @@ class NodeNew():
             else:
                 # TODO uncomment when write this function and remove the print below
                 self.send_token()
-                print("To be removed")
+                # print("To be removed")
         else:
             self.numOfTokens += 1
             self.totalTokenSent -= 1
-            self.send_token()
+            self.send_token(tokenQueue)
 
     def release_CS(self):
         self.requested = False
@@ -217,7 +217,18 @@ class NodeNew():
 
     # not sure he said send token from i,k to u,w and never use u and w in the function
 
-    def send_token(self):
+    def send_token(self, token):
+        if(token != None and (not token.is_empty())):
+            firstLRC = token.front()
+            Msg = {"MsgID": MsgDetails.TOKEN_QUEUE,
+                   "TokenQueue": token}
+            Topic = ("Group({}):TokenQueueGlobal".format(
+                firstLRC[0])).encode()
+            PubSocket.send_multipart(
+                [Topic, pickle.dumps(Msg)])
+            self.numOfTokens -= 1
+            self.totalTokenSent += 1
+
         if (self.type == NodeType.GRC and (not NodeNew.GRQCPY.is_empty())):
             # send tokens to GRC's group's local nodes
             firstLRC = NodeNew.GRQCPY.front()
@@ -316,7 +327,8 @@ class NodeNew():
                             self.totalTokenSent += 1
 
                         if(self.totalTokenSent == math.sqrt(NODES_NUMBER)):
-                            self.broadcast_request_collector(NodeNew.GRQ.rear())
+                            self.broadcast_request_collector(
+                                NodeNew.GRQ.rear())
 
                     if(q < TOTAL_TOKENS_NUM):
                         GroupTokens = TOTAL_TOKENS_NUM // (q + 1)
@@ -335,7 +347,8 @@ class NodeNew():
                                 self.totalTokenSent += 1
 
                         if(self.totalTokenSent == math.sqrt(NODES_NUMBER)):
-                            self.broadcast_request_collector(NodeNew.GRQ.rear())
+                            self.broadcast_request_collector(
+                                NodeNew.GRQ.rear())
 
                         # not sure written LRQ = phi in the paper's pesudo code
                         remainingNumTokens = TOTAL_TOKENS_NUM - \
@@ -383,7 +396,9 @@ class NodeNew():
                         PubSocket.send_multipart([Topic, pickle.dumps(Msg)])
 # --------------------------------------------------------------------------------------------
                     else:
+                        self.tokenQueue.dequeue()
                         Msg = {"MsgID": MsgDetails.LRC_GRC_Token,
-                               "GID": self.id[0]}
+                               "GID": self.id[0], "TokenQueue": self.tokenQueue}
+                        self.tokenQueue = None
                         Topic = "LRC_GRC_Token".encode()
                         PubSocket.send_multipart([Topic, pickle.dumps(Msg)])
