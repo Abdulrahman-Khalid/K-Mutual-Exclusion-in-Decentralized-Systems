@@ -366,7 +366,6 @@ class NodeOld():
                     if(self.type == NodeType.GRC and not NodeOld.GRQ.is_empty()):
                         NodeOld.LRQ.dequeue()  # pop marker
                         self.tokenQueue = NodeOld.LRQ.copy()
-                        NodeOld.LRQ = Queue()
                         NodeOld.LRQ.enqueue(MARKER)
                         firstNode = tempTokenQueue.front()
                         Msg = {"MsgID": MsgDetails.TOKEN_QUEUE,
