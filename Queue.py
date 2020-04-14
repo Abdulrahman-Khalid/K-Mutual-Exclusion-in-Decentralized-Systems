@@ -22,3 +22,6 @@ class Queue:
 
     def copy(self):
         return self.queue.copy()
+
+    def size(self):
+        return len(self.queue)
