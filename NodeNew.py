@@ -38,9 +38,9 @@ class NodeNew():
             if (self.id == (0, 1)):
                 self.type = NodeType.GRC
                 self.numOfTokens = TOTAL_TOKENS_NUM
-            else:
-                self.type = NodeType.NORMAL
-                self.numOfTokens = 0
+        else:
+            self.type = NodeType.NORMAL
+            self.numOfTokens = 0
         self.ConfigPubSubSockets()
 
     def ConfigPubSubSockets(self):

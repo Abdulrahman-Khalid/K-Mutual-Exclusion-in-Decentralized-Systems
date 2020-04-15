@@ -39,9 +39,9 @@ class NodeOld():
             if (self.id == (0, 1)):
                 self.type = NodeType.GRC
                 self.numOfTokens = TOTAL_TOKENS_NUM
-            else:
-                self.type = NodeType.NORMAL
-                self.numOfTokens = 0
+        else:
+            self.type = NodeType.NORMAL
+            self.numOfTokens = 0
         self.ConfigPubSubSockets()
 
     def ConfigPubSubSockets(self):
@@ -361,7 +361,7 @@ class NodeOld():
                     Topic = "Group({}),Id({}):Token".format(
                         firstNode[0], firstNode[1]).encode()
                     PubSocket.send_multipart([Topic, pickle.dumps(Msg)])
-# --------------------------------------------------------------------------------------------
+
                 if (NodeOld.LRQ.front() == MARKER):
                     if(self.type == NodeType.GRC and not NodeOld.GRQ.is_empty()):
                         NodeOld.LRQ.dequeue()  # pop marker
