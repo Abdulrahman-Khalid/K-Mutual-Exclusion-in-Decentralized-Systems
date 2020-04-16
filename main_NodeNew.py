@@ -8,7 +8,7 @@ from utils import MachinesIPs, NODES_NUMBER
 
 
 def run_node(node, ip):
-    node = NodeNew(node[1], node[2], ip)
+    node = NodeNew(node[0], node[1], ip)
     while(True):
         node.receiving()
         rand = randint(1, 1000000)
@@ -44,11 +44,3 @@ if __name__ == "__main__":
             i += 1
     for t in z:
         t.join()
-
-
-###
-
-# start all threads
-# wait for all threads to finish
-for t in z:
-    t.join()
