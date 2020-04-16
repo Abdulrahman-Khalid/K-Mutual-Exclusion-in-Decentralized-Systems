@@ -7,8 +7,8 @@ import math
 from utils import MachinesIPs, NODES_NUMBER
 
 
-def run_node(node, ip):
-    node = NodeOld(node[0], node[1], ip)
+def run_node(N, ip):
+    node = NodeOld(N[0], N[1], ip)
     while(True):
         node.receiving()
         rand = randint(1, 1000000)
