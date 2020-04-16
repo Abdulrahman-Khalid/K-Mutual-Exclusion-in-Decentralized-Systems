@@ -30,7 +30,7 @@ class NodeOld():
         self.requested = False
         self.mutex = False
         self.requestSent = False
-        self.tokenQueue = None  # not sure
+        self.tokenQueue = None 
         self.tokens = []
         self.type = None
         if (self.id[1] == 1):
@@ -206,7 +206,7 @@ class NodeOld():
                "GRCId": newGRCId, "GRQ": NodeOld.GRQ}
         Topic = "NewGRC".encode()
         PubSocket.send_multipart([Topic, pickle.dumps(Msg)])
-        # not sure
+       
         if(self.type == NodeType.GRC):
             self.type = NodeType.LRC
             NodeOld.GRQ = Queue()
@@ -239,7 +239,7 @@ class NodeOld():
                 Topic = ("Group({}),Id({}):Token".format(
                     nextNode[0], nextNode[1])).encode()
                 PubSocket.send_multipart([Topic, pickle.dumps(Msg)])
-            self.tokenQueue = None  # TODO Review added not sure
+            self.tokenQueue = None  
         else:
             p = NodeOld.LRQ.size()
             q = NodeOld.GRQ.size()
@@ -329,7 +329,6 @@ class NodeOld():
                             self.broadcast_request_collector(
                                 NodeOld.GRQ.rear())
 
-                        # not sure written LRQ = phi in the paper's pesudo code
                         remainingNumTokens = TOTAL_TOKENS_NUM - q
                         queueOfTokenQueue = Queue()
                         for _ in range(remainingNumTokens):
@@ -352,7 +351,7 @@ class NodeOld():
                             self.numOfTokens -= 1
 
             elif(self.type == NodeType.LRC or self.type == NodeType.GRC):
-                if (NodeOld.LRQ.front() != MARKER and NodeOld.LRQ.front() != self.id):  # not sure
+                if (NodeOld.LRQ.front() != MARKER and NodeOld.LRQ.front() != self.id):  
                     tempTokenQueue = NodeOld.LRQ.copy()
                     # tempTokenQueue.enqueue(MARKER)
                     firstNode = tempTokenQueue.front()

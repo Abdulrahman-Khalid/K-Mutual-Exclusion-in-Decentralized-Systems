@@ -30,7 +30,7 @@ class NodeNew():
         self.requested = False
         self.mutex = False
         self.requestSent = False
-        self.tokenQueue = None  # not sure
+        self.tokenQueue = None  
         self.tokens = []
         if (self.id[1] == 1):
             self.type = NodeType.LRC
@@ -93,10 +93,8 @@ class NodeNew():
             NodeNew.LRQ.enqueue(self.id)
             if self.numOfTokens > 0:
                 self.numOfTokens -= 1
-                # TODO enter CS
                 self.run_CS()
                 self.release_CS()
-                ########################
                 self.numOfTokens += 1
             elif (self.type == NodeType.LRC):
                 Msg = {"MsgID": MsgDetails.LRC_GRC_REQ_CS, "GID": self.id[0]}
@@ -257,7 +255,7 @@ class NodeNew():
                 Topic = ("Group({}),Id({}):Token".format(
                     nextNode[0], nextNode[1])).encode()
                 PubSocket.send_multipart([Topic, pickle.dumps(Msg)])
-            self.tokenQueue = None  # TODO Review added not sure
+            self.tokenQueue = None  
         else:
             p = NodeNew.LRQ.size()
             q = NodeNew.GRQ.size()
@@ -350,7 +348,6 @@ class NodeNew():
                             self.broadcast_request_collector(
                                 NodeNew.GRQ.rear())
 
-                        # not sure written LRQ = phi in the paper's pesudo code
                         remainingNumTokens = TOTAL_TOKENS_NUM - \
                             (GroupTokens * q)
                         queueOfTokenQueue = Queue()
@@ -374,7 +371,7 @@ class NodeNew():
                             self.numOfTokens -= 1
 
             elif(self.type == NodeType.LRC or self.type == NodeType.GRC):
-                if (NodeNew.LRQ.front() != MARKER and NodeNew.LRQ.front() != self.id):  # not sure
+                if (NodeNew.LRQ.front() != MARKER and NodeNew.LRQ.front() != self.id):  
                     tempTokenQueue = NodeNew.LRQ.copy()
                     tempTokenQueue.enqueue(MARKER)
                     firstNode = tempTokenQueue.front()
@@ -383,7 +380,7 @@ class NodeNew():
                     Topic = "Group({}),Id({}):Token".format(
                         firstNode[0], firstNode[1]).encode()
                     PubSocket.send_multipart([Topic, pickle.dumps(Msg)])
-# --------------------------------------------------------------------------------------------
+
                 if (NodeNew.LRQ.front() == MARKER):
                     if(self.type == NodeType.GRC and not NodeNew.GRQ.is_empty()):
                         NodeNew.LRQ.dequeue()  # pop marker
@@ -394,7 +391,7 @@ class NodeNew():
                         Topic = "Group({}),Id({}):Token".format(
                             firstNode[0], firstNode[1]).encode()
                         PubSocket.send_multipart([Topic, pickle.dumps(Msg)])
-# --------------------------------------------------------------------------------------------
+
                     else:
                         self.tokenQueue.dequeue()
                         Msg = {"MsgID": MsgDetails.LRC_GRC_Token,

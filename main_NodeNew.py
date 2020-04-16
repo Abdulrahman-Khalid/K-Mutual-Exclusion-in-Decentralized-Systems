@@ -1,6 +1,6 @@
 from subprocess import run, PIPE
 import random
-from NodeOld import *
+from NodeNew import *
 from random import randint
 import threading
 import math
@@ -8,7 +8,7 @@ from utils import MachinesIPs, NODES_NUMBER
 
 
 def run_node(node, ip):
-    node = NodeOld(node[1], node[2], ip)
+    node = NodeNew(node[1], node[2], ip)
     while(True):
         node.receiving()
         rand = randint(1, 1000000)
@@ -49,8 +49,6 @@ if __name__ == "__main__":
 ###
 
 # start all threads
-
-
 # wait for all threads to finish
 for t in z:
     t.join()
