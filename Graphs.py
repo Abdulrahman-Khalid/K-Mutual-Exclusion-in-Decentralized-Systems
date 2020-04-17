@@ -65,7 +65,7 @@ def msg_new_2():
 def draw(x, arr_y, labels):
     caseTitles = ["Case 1", "Case 1", "Case 2", "Case 2"]
     titles = ["Old algorithm", "New algorithm", "Old algorithm", "New algorithm",
-              "Old algorithm", "New algorithm", "Old algorithm", "(New algorithm"]
+              "Old algorithm", "New algorithm", "Old algorithm", "New algorithm"]
     idx = 0
     while(idx < len(arr_y) - 1):
         fig, (ax1, ax2) = plt.subplots(1, 2)
