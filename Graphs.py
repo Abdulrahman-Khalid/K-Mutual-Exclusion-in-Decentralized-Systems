@@ -62,13 +62,22 @@ def msg_new_2():
     return NumOfMsgs
 
 
-def draw(x, arr_y, labels, titles):
-    for idx, y in enumerate(arr_y):
-        plt.plot(x, y, '-ok')
-        plt.xlabel(labels[idx][0])
-        plt.ylabel(labels[idx][1])
-        plt.title(titles[idx])
+def draw(x, arr_y, labels):
+    caseTitles = ["Case 1", "Case 1", "Case 2", "Case 2"]
+    titles = ["Old algorithm", "New algorithm", "Old algorithm", "New algorithm",
+              "Old algorithm", "New algorithm", "Old algorithm", "(New algorithm"]
+    idx = 0
+    while(idx < len(arr_y) - 1):
+        fig, (ax1, ax2) = plt.subplots(1, 2)
+        fig.suptitle(caseTitles[int(idx/2)])
+        ax1.set_title(titles[idx])
+        ax2.set_title(titles[idx+1])
+        ax1.set(xlabel=labels[idx][0], ylabel=labels[idx][1])
+        ax2.set(xlabel=labels[idx+1][0], ylabel=labels[idx+1][1])
         plt.grid()
+        ax1.plot(x, arr_y[idx], '-ok')
+        ax2.plot(x, arr_y[idx+1], '-ok')
+        idx += 2
         plt.show()
 
 
@@ -103,9 +112,7 @@ def draw_k_as_variable():
               ("Number of tokens (k)", "Num of Messages"), ("Number of tokens (k)",
                                                             "Time in ms"), ("Number of tokens (k)", "Time in ms"),
               ("Number of tokens (k)", "Num of Messages"), ("Number of tokens (k)", "Num of Messages")]
-    titles = ["Case 1 (Old algorithm)", "Case 1 (New algorithm)", "Case 1 (Old algorithm)", "Case 1 (New algorithm)",
-              "Case 2 (Old algorithm)", "Case 2 (New algorithm)", "Case 2 (Old algorithm)", "Case 2 (New algorithm)"]
-    draw(inputs_k, arr_y, labels, titles)
+    draw(inputs_k, arr_y, labels)
 
 
 def draw_q_as_variable():  # k > q
@@ -139,9 +146,7 @@ def draw_q_as_variable():  # k > q
               ("Number of requested groups (q)", "Num of Messages"), ("Number of requested groups (q)",
                                                                       "Time in ms"), ("Number of requested groups (q)", "Time in ms"),
               ("Number of requested groups (q)", "Num of Messages"), ("Number of requested groups (q)", "Num of Messages")]
-    titles = ["Case 1 (Old algorithm)", "Case 1 (New algorithm)", "Case 1 (Old algorithm)", "Case 1 (New algorithm)",
-              "Case 2 (Old algorithm)", "Case 2 (New algorithm)", "Case 2 (Old algorithm)", "Case 2 (New algorithm)"]
-    draw(inputs_q, arr_y, labels, titles)
+    draw(inputs_q, arr_y, labels)
 
 
 def draw_n_as_variable():  # k > q
@@ -179,9 +184,7 @@ def draw_n_as_variable():  # k > q
               ("Number of requested nodes (n)", "Num of Messages"), ("Number of requested nodes (n)",
                                                                      "Time in ms"), ("Number of requested nodes (n)", "Time in ms"),
               ("Number of requested nodes (n)", "Num of Messages"), ("Number of requested nodes (n)", "Num of Messages")]
-    titles = ["Case 1 (Old algorithm)", "Case 1 (New algorithm)", "Case 1 (Old algorithm)", "Case 1 (New algorithm)",
-              "Case 2 (Old algorithm)", "Case 2 (New algorithm)", "Case 2 (Old algorithm)", "Case 2 (New algorithm)"]
-    draw(inputs_n, arr_y, labels, titles)
+    draw(inputs_n, arr_y, labels)
 
 
 if __name__ == "__main__":
