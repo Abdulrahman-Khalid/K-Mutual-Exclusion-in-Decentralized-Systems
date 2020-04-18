@@ -62,19 +62,20 @@ def msg_new_2():
     return NumOfMsgs
 
 
-def draw(x, arr_y, labels):
+def draw(x, arr_y, labels, title):
     caseTitles = ["Case 1", "Case 1", "Case 2", "Case 2"]
     titles = ["Old algorithm", "New algorithm", "Old algorithm", "New algorithm",
               "Old algorithm", "New algorithm", "Old algorithm", "New algorithm"]
     idx = 0
     while(idx < len(arr_y) - 1):
         fig, (ax1, ax2) = plt.subplots(1, 2)
-        fig.suptitle(caseTitles[int(idx/2)])
+        fig.suptitle(caseTitles[int(idx/2)]+" " + title)
         ax1.set_title(titles[idx])
         ax2.set_title(titles[idx+1])
         ax1.set(xlabel=labels[idx][0], ylabel=labels[idx][1])
         ax2.set(xlabel=labels[idx+1][0], ylabel=labels[idx+1][1])
-        plt.grid()
+        ax1.grid()
+        ax2.grid()
         ax1.plot(x, arr_y[idx], '-ok')
         ax2.plot(x, arr_y[idx+1], '-ok')
         idx += 2
@@ -83,11 +84,11 @@ def draw(x, arr_y, labels):
 
 def draw_k_as_variable():
     global k, q, n, n_arr, n_largest
-    q = 5
-    n = 32
-    n_arr = [2, 4, 8, 16, 32]
+    n = 128
+    n_arr = [1, 2, 4, 8, 16, 32, 64, 128]
+    q = 8
     n_largest = max(n_arr)
-    inputs_k = range(n, 101)
+    inputs_k = range(q, 100, 5)
     timeOld1 = []
     timeNew1 = []
     msgOld1 = []
@@ -112,16 +113,16 @@ def draw_k_as_variable():
               ("Number of tokens (k)", "Num of Messages"), ("Number of tokens (k)",
                                                             "Time in ms"), ("Number of tokens (k)", "Time in ms"),
               ("Number of tokens (k)", "Num of Messages"), ("Number of tokens (k)", "Num of Messages")]
-    draw(inputs_k, arr_y, labels)
+    draw(inputs_k, arr_y, labels, "when q = 8 and largest n = 128")
 
 
 def draw_q_as_variable():  # k > q
     global k, q, n, n_arr, n_largest
-    k = 100
-    n = 32
-    n_arr = [2, 4, 8, 16, 32]
+    k = 50
+    n = 128
+    n_arr = [1, 2, 4, 8, 16, 32, 64, 128]
     n_largest = max(n_arr)
-    inputs_q = range(2, k+1)
+    inputs_q = range(1, len(n_arr)+1)
     timeOld1 = []
     timeNew1 = []
     msgOld1 = []
@@ -146,14 +147,14 @@ def draw_q_as_variable():  # k > q
               ("Number of requested groups (q)", "Num of Messages"), ("Number of requested groups (q)",
                                                                       "Time in ms"), ("Number of requested groups (q)", "Time in ms"),
               ("Number of requested groups (q)", "Num of Messages"), ("Number of requested groups (q)", "Num of Messages")]
-    draw(inputs_q, arr_y, labels)
+    draw(inputs_q, arr_y, labels, "when k = 50 and largest n = 128")
 
 
 def draw_n_as_variable():  # k > q
     global k, q, n, n_arr, n_largest
-    k = 100
-    q = 10
-    inputs_n = range(32, k+1)
+    k = 50
+    q = 5
+    inputs_n = range(1, k+1)
     timeOld1 = []
     timeNew1 = []
     msgOld1 = []
@@ -165,7 +166,7 @@ def draw_n_as_variable():  # k > q
     for x in inputs_n:
         n = x
         i = 2
-        n_arr = []
+        n_arr = [1]
         while(i < n):
             n_arr.append(i)
             i *= 2
@@ -184,7 +185,7 @@ def draw_n_as_variable():  # k > q
               ("Number of requested nodes (n)", "Num of Messages"), ("Number of requested nodes (n)",
                                                                      "Time in ms"), ("Number of requested nodes (n)", "Time in ms"),
               ("Number of requested nodes (n)", "Num of Messages"), ("Number of requested nodes (n)", "Num of Messages")]
-    draw(inputs_n, arr_y, labels)
+    draw(inputs_n, arr_y, labels, "when k = 50 and q = 5")
 
 
 if __name__ == "__main__":
