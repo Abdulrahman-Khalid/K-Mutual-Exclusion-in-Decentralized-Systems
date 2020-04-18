@@ -74,7 +74,7 @@ def draw(x, arr_y, labels, title):
     plt.rcParams.update({'font.size': 22})
     while(idx < len(arr_y) - 1):
         fig, (ax1, ax2) = plt.subplots(1, 2)
-        fig.set_size_inches(20.5, 10.5)
+        fig.set_size_inches(22.5, 10.5)
         fig.suptitle(caseTitles[int(idx/2)]+" " + title, color="#35375A")
         ax1.set_title(titles[idx], color='#FF4500')
         ax2.set_title(titles[idx+1], color='#1F2179')
