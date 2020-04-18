@@ -62,24 +62,32 @@ def msg_new_2():
     return NumOfMsgs
 
 
+graphIndx = 1
+
+
 def draw(x, arr_y, labels, title):
+    global graphIndx
     caseTitles = ["Case 1", "Case 1", "Case 2", "Case 2"]
     titles = ["Old algorithm", "New algorithm", "Old algorithm", "New algorithm",
               "Old algorithm", "New algorithm", "Old algorithm", "New algorithm"]
     idx = 0
     while(idx < len(arr_y) - 1):
         fig, (ax1, ax2) = plt.subplots(1, 2)
-        fig.suptitle(caseTitles[int(idx/2)]+" " + title)
-        ax1.set_title(titles[idx])
-        ax2.set_title(titles[idx+1])
+        fig.set_size_inches(18.5, 10.5)
+        fig.suptitle(caseTitles[int(idx/2)]+" " + title, color="#35375A")
+        ax1.set_title(titles[idx], color='#FF4500')
+        ax2.set_title(titles[idx+1], color='#1F2179')
         ax1.set(xlabel=labels[idx][0], ylabel=labels[idx][1])
         ax2.set(xlabel=labels[idx+1][0], ylabel=labels[idx+1][1])
         ax1.grid()
         ax2.grid()
-        ax1.plot(x, arr_y[idx], '-ok')
-        ax2.plot(x, arr_y[idx+1], '-ok')
+        ax1.plot(x, arr_y[idx], color='#FF4500')
+        ax2.plot(x, arr_y[idx+1], color='#1F2179')
         idx += 2
-        plt.show()
+        plt.savefig('Graphs/{}.png'.format(graphIndx), dpi=50,
+                    interpolation='nearest', aspect='auto')
+        graphIndx += 1
+        # plt.show()
 
 
 def draw_k_as_variable():
